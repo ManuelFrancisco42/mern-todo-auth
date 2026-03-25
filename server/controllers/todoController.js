@@ -1,76 +1,67 @@
- import TodoModel from "../models/TodoModel.js";
+import TodoModel from '../models/todoModel.js'
 
 /* -------------------------------------------------------------------------- */
-/*                               GET /api/todos                               */
+/*                                GET ALL TODOS                               */
 /* -------------------------------------------------------------------------- */
-export const getAllTodosController = async (req, res) => {
- try {
-   const todos = await TodoModel.find({ user: req.userId }).sort({
-     createdAt: -1,
-   })
-   res.json(todos)
- } catch (error) {
-  res.status(500).json({ error, message: 'Server error' })
- }
-};
-
-/* -------------------------------------------------------------------------- */
-/*                             POST / api / todos                             */
-/* -------------------------------------------------------------------------- */
-export const createTodoController = async (req, res) => {
- try {
-   const { text } = req.body
-   if (!text || !text.trim()) {
-     return res.status(400).json({ message: 'Todo text is required' })
-   }
-
-   const todo = await TodoModel.create({ text, user: req.userId })
-   res.status(201).json(todo)
- } catch (error) {
-  res.status(500).json({ error, message: "Server error"})
- }
+export const getAllTodosControllers = async (req, res) => {
+  try {
+    const todos = await TodoModel.find().sort({ createdAt: -1 })
+    res.status(200).json(todos)
+  } catch (error) {
+    res.status(500).json({ message: error })
+    res.status(500).json({ message: 'Server error while creating todo.' })
+  }
 }
 
 /* -------------------------------------------------------------------------- */
-/*                            PATCH /api/todos/:id                            */
+/*                                 CREATE TODO                                */
+/* -------------------------------------------------------------------------- */
+export const createTodoController = async (req, res) => {
+  try {
+    const { text } = req.body
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Todo text is required' })
+    }
+    const todo = await TodoModel.create({ text })
+    res.status(201).json(todo)
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while creating todo.' })
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 UPDATE TODO                                */
 /* -------------------------------------------------------------------------- */
 export const updateTodoController = async (req, res) => {
   try {
     const { id } = req.params
     const { completed, text } = req.body
-
-    const todo = await TodoModel.findOneAndUpdate(
-      { _id: id, user: req.userId },
+    const todo = await TodoModel.findByIdAndUpdate(
+      id,
       { completed, text },
-      { new: true },
+      { returnDocument: 'after', runValidators: true },
     )
     if (!todo) {
       return res.status(404).json({ message: 'Not found' })
     }
-
     res.json(todo)
   } catch (error) {
-    res.status(500).json({ error, message: 'Server error' })
+    res.status(500).json({ message: 'Server error while creating todo.' })
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/*                            DELETE /api/todos/:id                           */
+/*                                 DELETE TODO                                */
 /* -------------------------------------------------------------------------- */
 export const deleteTodoController = async (req, res) => {
   try {
     const { id } = req.params
-
-    const todo = await TodoModel.findByIdAndDelete({
-      _id: id,
-      user: req.userId,
-    })
+    const todo = await TodoModel.findByIdAndDelete(id)
     if (!todo) {
       return res.status(404).json({ message: 'Not found' })
     }
-
-    res.json({ message: 'Todo deleted', id })
+    res.json({ message: 'Deleted', id })
   } catch (error) {
-    res.status(500).json({ error, message: 'Server error' })
+    res.status(500).json({ message: 'Server error while creating todo.' })
   }
 }
